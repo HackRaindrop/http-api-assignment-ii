@@ -1,13 +1,13 @@
 const http = require('http');
-const responseHandler = require('./responses.js');
+const htmlResponses = require('./htmlResponses.js');
 
 // Set port
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
 // URLS
 const urlStruct = {
-  '/': responseHandler.getIndex,
-  '/style.css': responseHandler.getCSS,
+  '/': htmlResponses.getIndex,
+  '/style.css': htmlResponses.getCSS,
 };
 
 const onRequest = (request, response) => {
@@ -20,11 +20,11 @@ const onRequest = (request, response) => {
 
   // Check if URL exists
   if (urlStruct[parsedUrl.pathname]) {
-    // Call response handler (handles both JSON and XML internally)
+    // Call response handler
     urlStruct[parsedUrl.pathname](request, response, params);
   } else {
-    // URL does not exist - call not found handler
-    responseHandler.getIndex(request, response, params);
+    // URL does not exist - send to index
+    htmlResponses.getIndex(request, response, params);
   }
 };
 
