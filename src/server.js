@@ -5,29 +5,62 @@ const jsonResponses = require('./jsonResponses.js');
 // Set port
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
-// URLS
-const urlStruct = {
-  '/': htmlResponses.getIndex,
-  '/style.css': htmlResponses.getCSS,
-  '/getUsers': jsonResponses.getUsers,
-  '/notReal': jsonResponses.notReal,
+// Parse body of request
+const parseBody = (request, response, handler) => {
+  const body = [];
+
+  // Handle errors
+  request.on('error', (e) => {
+    console.dir(e);
+    response.statusCode = 400;
+    response.end();
+  });
+
+  // Add chunk to body
+  request.on('data', (chunk) => {
+    body.push(chunk);
+  });
+
+  // Parse body of request
+  request.on('end', () => {
+    const bodyString = Buffer.concat(body).toString();
+    request.body = JSON.parse(bodyString);
+    handler(request, response);
+  });
 };
 
-const onRequest = (request, response) => {
-  // Parse URL
-  const protocol = request.connection.encrypted ? 'https' : 'http';
-  const parsedUrl = new URL(request.url, `${protocol}://${request.headers.host}`);
-  const params = {
-    query: Object.fromEntries(parsedUrl.searchParams),
-  };
+// Handle POST requests
+const handlePost = (request, response, parsedURL) => {
+  if (parsedURL.pathname === '/addUser') {
+    parseBody(request, response, jsonResponses.addUser);
+  }
+};
 
-  // Check if URL exists
-  if (urlStruct[parsedUrl.pathname]) {
-    // Call response handler
-    urlStruct[parsedUrl.pathname](request, response, params);
+// Handle GET requests
+const handleGet = (request, response, parsedURL) => {
+  switch (parsedURL.pathname) {
+    case '/style.css':
+      return htmlResponses.getCSS(request, response);
+    case '/getUsers':
+      return jsonResponses.getUsers(request, response);
+    case '/notReal':
+      return jsonResponses.notReal(request, response);
+    case '/':
+      return htmlResponses.getIndex(request, response);
+    default:
+      return jsonResponses.notReal(request, response);
+  }
+};
+
+// Handle all requests
+const onRequest = (request, response) => {
+  const protocol = request.connection.encrypted ? 'https:' : 'http';
+  const parsedURL = new URL(request.url, `${protocol}://${request.headers.host}`);
+
+  if (request.method === 'POST') {
+    handlePost(request, response, parsedURL);
   } else {
-    // URL does not exist - send to index
-    htmlResponses.getIndex(request, response, params);
+    handleGet(request, response, parsedURL);
   }
 };
 

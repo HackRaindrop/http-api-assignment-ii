@@ -15,6 +15,7 @@
       const urlField = document.getElementById('urlField');
       const methodSelect = document.getElementById('methodSelect');
       const content = document.getElementById('content');
+      const nameForm = document.getElementById('nameForm')
 
       // Event listener for submission
       userForm.addEventListener('submit', async (e) => {
@@ -27,21 +28,80 @@
 
           // Make fetch request
           const response = await fetch(url, { method });
-          console.log(response);
 
           if (method === 'GET') {
 
             // Get text from response and display
             const jsonResponse = await response.json();
-            content.innerHTML = `<b style="text-align:center">${response.statusText || 'Success'}</b>${JSON.stringify(jsonResponse)}`;
+            console.log(jsonResponse);
+            const statusText = response.status === 200 ? 'Success' : response.statusText;
 
+            // Show only JSON data for /getUsers
+            if (url === '/getUsers') {
+              content.innerHTML = `<b>${statusText}</b><br>${JSON.stringify(jsonResponse.users)}`;
+            } else {
+              // All other endpoints show Message: jsonResponse.message
+              content.innerHTML = `<b>${statusText}</b><br>Message: ${jsonResponse.message}`;
+            }
           } else {
 
             // Display status and headers for HEAD request
-            content.innerHTML = `<b>${response.statusText}</b>`;
+            const statusText = response.status === 200 ? 'Success' : response.statusText;
+            content.innerHTML = `<b>${statusText}</b>`;
           }
 
           //Catch errors
+        } catch (error) {
+          content.textContent = `${error.message}`;
+        }
+      });
+
+      // Event listener for new user form
+      nameForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Get form data
+        const formData = {
+          name: document.getElementById('nameField').value,
+          age: document.getElementById('ageField').value,
+        };
+        try {
+
+          // Make fetch request
+          const response = await fetch('/addUser', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+
+          let message = '';
+
+          // Handle 201 and 204 responses
+          if (response.status === 201 || response.status === 204) {
+            const statusText = response.status === 201 ? 'Created' : 'Updated (No Content)';
+
+            // Show message for 201 response
+            if (response.status === 201) {
+
+              const jsonResponse = await response.json();
+              console.log(jsonResponse);
+              content.innerHTML = `<b>${statusText}</b><br>Message: ${jsonResponse.message}`;
+
+            } else {
+
+              // Show message for 204 response
+              content.innerHTML = `<b>${statusText}</b>`;
+            }
+          } else {
+
+            // Show message for other responses
+            const jsonResponse = await response.json();
+            console.log(jsonResponse);
+            const statusText = response.status === 200 ? 'Success' : response.statusText;
+            content.innerHTML = `<b>${statusText}</b><br>Message: ${jsonResponse.message}`;
+          }
         } catch (error) {
           content.textContent = `${error.message}`;
         }
