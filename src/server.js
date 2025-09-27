@@ -1,5 +1,6 @@
 const http = require('http');
 const htmlResponses = require('./htmlResponses.js');
+const jsonResponses = require('./jsonResponses.js');
 
 // Set port
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
@@ -8,6 +9,8 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const urlStruct = {
   '/': htmlResponses.getIndex,
   '/style.css': htmlResponses.getCSS,
+  '/getUsers': jsonResponses.getUsers,
+  '/notReal': jsonResponses.notReal,
 };
 
 const onRequest = (request, response) => {

@@ -1,13 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Our simple HTTP server</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
-  
+
   <script>
 
+    // Wait until DOM content is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Get elements
+      const userForm = document.getElementById('userForm');
+      const urlField = document.getElementById('urlField');
+      const methodSelect = document.getElementById('methodSelect');
+      const content = document.getElementById('content');
+
+      // Event listener for submission
+      userForm.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+        const url = urlField.value;
+        const method = methodSelect.value.toUpperCase();
+
+        try {
+
+          // Make fetch request
+          const response = await fetch(url, { method });
+          console.log(response);
+
+          if (method === 'GET') {
+
+            // Get text from response and display
+            const jsonResponse = await response.json();
+            content.innerHTML = `<b style="text-align:center">${response.statusText || 'Success'}</b>${JSON.stringify(jsonResponse)}`;
+
+          } else {
+
+            // Display status and headers for HEAD request
+            content.innerHTML = `<b>${response.statusText}</b>`;
+          }
+
+          //Catch errors
+        } catch (error) {
+          content.textContent = `${error.message}`;
+        }
+      });
+    });
   </script>
 </head>
+
 <body>
   <section id="top">
     <h3>POST Status Code Tests</h3>
@@ -15,7 +57,7 @@
       <label for="name">Name: </label>
       <input id="nameField" type="text" name="name" />
       <label for="age">Age: </label>
-      <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
+      <input id="ageField" type="number" name="age" min="0" max="100" step="1" />
       <input type="submit" value="Add User" />
     </form>
     <form id="userForm" action="/getUsers" method="get">
@@ -33,4 +75,5 @@
   <section id="content">
   </section>
 </body>
+
 </html>
