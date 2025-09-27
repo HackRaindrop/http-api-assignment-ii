@@ -75,6 +75,7 @@ const notReal = (request, response) => {
   return respondJSON(request, response, 404, responseJSON);
 };
 
+// Export
 module.exports = {
   getUsers,
   notReal,
